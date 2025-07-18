@@ -1,0 +1,485 @@
+openapi: 3.0.0
+info:
+  description: |
+    An API for scheduling meetings, managing persons, students, teachers, their ratings, and integrating with Google services.
+    Additional endpoints allow managing teachers, students, and scheduling multi-participant meetings.
+  title: Student-Teacher Meeting Scheduler API
+  version: 1.4.0
+servers:
+- description: Local development server
+  url: http://localhost:8000
+paths:
+  /auth/callback/google:
+    get:
+      description: Handles the OAuth2 callback from Google and stores user information.
+      operationId: auth_callback_google_get
+      parameters:
+      - explode: true
+        in: query
+        name: code
+        required: true
+        schema:
+          type: string
+        style: form
+      responses:
+        "200":
+          description: Successful login.
+        "400":
+          description: Failed to authenticate.
+      summary: Google OAuth2 Callback
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /auth/login/google:
+    get:
+      description: Redirects the user to Google's OAuth2 login page.
+      operationId: auth_login_google_get
+      responses:
+        "302":
+          description: Redirect to Google login page.
+        "400":
+          description: Failed to initiate Google login.
+      summary: Login via Google
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /meetings:
+    get:
+      operationId: meetings_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Meeting'
+                type: array
+          description: A list of meetings
+      summary: Get a list of all meetings
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    post:
+      description: Schedule a meeting involving multiple participants.
+      operationId: meetings_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Meeting'
+        required: true
+      responses:
+        "201":
+          description: Meeting created successfully.
+        "400":
+          description: Invalid meeting details provided.
+      summary: Create a new meeting
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /meetings/schedule-google-calendar:
+    post:
+      description: Creates a meeting and adds it to the user's Google Calendar.
+      operationId: meetings_schedule_google_calendar_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Meeting'
+        required: true
+      responses:
+        "200":
+          description: Meeting successfully scheduled in Google Calendar.
+        "400":
+          description: Failed to create the meeting.
+        "401":
+          description: "Unauthorized, user not logged in."
+      summary: Schedule a meeting in Google Calendar
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /persons:
+    get:
+      operationId: persons_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Person'
+                type: array
+          description: A list of persons
+      summary: Get a list of all persons
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /students:
+    delete:
+      operationId: students_delete
+      parameters:
+      - explode: true
+        in: query
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: form
+      responses:
+        "200":
+          description: Student deleted successfully
+        "404":
+          description: Student not found
+      summary: Delete a student by ID
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    get:
+      operationId: students_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Student'
+                type: array
+          description: A list of students
+      summary: Get a list of all students
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    post:
+      operationId: students_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Student'
+        required: true
+      responses:
+        "201":
+          description: Student created successfully
+      summary: Create a new student
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    put:
+      operationId: students_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Student'
+        required: true
+      responses:
+        "200":
+          description: Student updated successfully.
+        "404":
+          description: Student not found.
+      summary: Update student details
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+  /teachers:
+    delete:
+      operationId: teachers_delete
+      parameters:
+      - explode: true
+        in: query
+        name: id
+        required: true
+        schema:
+          type: integer
+        style: form
+      responses:
+        "200":
+          description: Teacher deleted successfully
+        "404":
+          description: Teacher not found
+      summary: Delete a teacher by ID
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    get:
+      operationId: teachers_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Teacher'
+                type: array
+          description: A list of teachers
+      summary: Get a list of all teachers
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    post:
+      operationId: teachers_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Teacher'
+        required: true
+      responses:
+        "201":
+          description: Teacher created successfully
+      summary: Create a new teacher
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+    put:
+      operationId: teachers_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Teacher'
+        required: true
+      responses:
+        "200":
+          description: Teacher updated successfully.
+        "404":
+          description: Teacher not found.
+      summary: Update teacher details
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+components:
+  schemas:
+    Person:
+      example:
+        about_section: about_section
+        phone: phone
+        name: name
+        available:
+        - 2000-01-23T04:56:07.000+00:00
+        - 2000-01-23T04:56:07.000+00:00
+        rating: 4.5
+        id: 0
+        email: email
+      properties:
+        id:
+          title: id
+          type: integer
+        name:
+          title: name
+          type: string
+        phone:
+          title: phone
+          type: string
+        email:
+          title: email
+          type: string
+        about_section:
+          title: about_section
+          type: string
+        available:
+          items:
+            format: date-time
+            type: string
+          title: available
+          type: array
+        rating:
+          description: "Average rating for the person, on a scale of 0 to 5."
+          example: 4.5
+          format: float
+          title: rating
+          type: number
+      title: Person
+      type: object
+    Student:
+      allOf:
+      - $ref: '#/components/schemas/Person'
+      - properties:
+          subjects_interested_in_learning:
+            items:
+              type: string
+            type: array
+          meetings:
+            items:
+              $ref: '#/components/schemas/Meeting'
+            type: array
+        type: object
+      example:
+        about_section: about_section
+        phone: phone
+        name: name
+        available:
+        - 2000-01-23T04:56:07.000+00:00
+        - 2000-01-23T04:56:07.000+00:00
+        rating: 4.5
+        subjects_interested_in_learning:
+        - subjects_interested_in_learning
+        - subjects_interested_in_learning
+        meetings:
+        - start_time: 2000-01-23T04:56:07.000+00:00
+          subject: subject
+          location: location
+          people:
+          - about_section: about_section
+            phone: phone
+            name: name
+            available:
+            - 2000-01-23T04:56:07.000+00:00
+            - 2000-01-23T04:56:07.000+00:00
+            rating: 4.5
+            id: 0
+            email: email
+          - about_section: about_section
+            phone: phone
+            name: name
+            available:
+            - 2000-01-23T04:56:07.000+00:00
+            - 2000-01-23T04:56:07.000+00:00
+            rating: 4.5
+            id: 0
+            email: email
+          finish_time: 2000-01-23T04:56:07.000+00:00
+          attached_files:
+          - ""
+          - ""
+        - start_time: 2000-01-23T04:56:07.000+00:00
+          subject: subject
+          location: location
+          people:
+          - about_section: about_section
+            phone: phone
+            name: name
+            available:
+            - 2000-01-23T04:56:07.000+00:00
+            - 2000-01-23T04:56:07.000+00:00
+            rating: 4.5
+            id: 0
+            email: email
+          - about_section: about_section
+            phone: phone
+            name: name
+            available:
+            - 2000-01-23T04:56:07.000+00:00
+            - 2000-01-23T04:56:07.000+00:00
+            rating: 4.5
+            id: 0
+            email: email
+          finish_time: 2000-01-23T04:56:07.000+00:00
+          attached_files:
+          - ""
+          - ""
+        id: 0
+        email: email
+      title: Student
+    Teacher:
+      allOf:
+      - $ref: '#/components/schemas/Person'
+      - properties:
+          subjects_to_teach:
+            items:
+              type: string
+            type: array
+          hourly_rate:
+            format: float
+            type: number
+          meetings:
+            items:
+              $ref: '#/components/schemas/Meeting'
+            type: array
+        type: object
+      example:
+        about_section: about_section
+        phone: phone
+        hourly_rate: 6.0274563
+        name: name
+        available:
+        - 2000-01-23T04:56:07.000+00:00
+        - 2000-01-23T04:56:07.000+00:00
+        rating: 4.5
+        subjects_to_teach:
+        - subjects_to_teach
+        - subjects_to_teach
+        meetings:
+        - start_time: 2000-01-23T04:56:07.000+00:00
+          subject: subject
+          location: location
+          people:
+          - about_section: about_section
+            phone: phone
+            name: name
+            available:
+            - 2000-01-23T04:56:07.000+00:00
+            - 2000-01-23T04:56:07.000+00:00
+            rating: 4.5
+            id: 0
+            email: email
+          - about_section: about_section
+            phone: phone
+            name: name
+            available:
+            - 2000-01-23T04:56:07.000+00:00
+            - 2000-01-23T04:56:07.000+00:00
+            rating: 4.5
+            id: 0
+            email: email
+          finish_time: 2000-01-23T04:56:07.000+00:00
+          attached_files:
+          - ""
+          - ""
+        - start_time: 2000-01-23T04:56:07.000+00:00
+          subject: subject
+          location: location
+          people:
+          - about_section: about_section
+            phone: phone
+            name: name
+            available:
+            - 2000-01-23T04:56:07.000+00:00
+            - 2000-01-23T04:56:07.000+00:00
+            rating: 4.5
+            id: 0
+            email: email
+          - about_section: about_section
+            phone: phone
+            name: name
+            available:
+            - 2000-01-23T04:56:07.000+00:00
+            - 2000-01-23T04:56:07.000+00:00
+            rating: 4.5
+            id: 0
+            email: email
+          finish_time: 2000-01-23T04:56:07.000+00:00
+          attached_files:
+          - ""
+          - ""
+        id: 0
+        email: email
+      title: Teacher
+    Meeting:
+      example:
+        start_time: 2000-01-23T04:56:07.000+00:00
+        subject: subject
+        location: location
+        people:
+        - about_section: about_section
+          phone: phone
+          name: name
+          available:
+          - 2000-01-23T04:56:07.000+00:00
+          - 2000-01-23T04:56:07.000+00:00
+          rating: 4.5
+          id: 0
+          email: email
+        - about_section: about_section
+          phone: phone
+          name: name
+          available:
+          - 2000-01-23T04:56:07.000+00:00
+          - 2000-01-23T04:56:07.000+00:00
+          rating: 4.5
+          id: 0
+          email: email
+        finish_time: 2000-01-23T04:56:07.000+00:00
+        attached_files:
+        - ""
+        - ""
+      properties:
+        location:
+          title: location
+          type: string
+        start_time:
+          format: date-time
+          title: start_time
+          type: string
+        finish_time:
+          format: date-time
+          title: finish_time
+          type: string
+        subject:
+          title: subject
+          type: string
+        people:
+          items:
+            $ref: '#/components/schemas/Person'
+          title: people
+          type: array
+        attached_files:
+          items:
+            format: binary
+            type: string
+          title: attached_files
+          type: array
+      title: Meeting
+      type: object

@@ -1,0 +1,4 @@
+fastapi==0.68.0   # or use a newer version if compatible and needed
+uvicorn==0.15.0   # or a newer version if it brings beneficial updates
+python-dateutil>=2.6.0  # commonly used for date handling, check if needed
+setuptools>=21.0.0  # essential for package management, ensure it's updated
